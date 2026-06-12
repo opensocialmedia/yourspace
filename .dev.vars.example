@@ -1,0 +1,25 @@
+# ──────────────────────────────────────────────────────────────────────
+# Local development secrets.
+#
+# 1. Copy this file:        cp .dev.vars.example .dev.vars
+# 2. Fill in real values    (.dev.vars is gitignored — never commit it)
+#
+# In production these are NOT read from a file. Set each one with:
+#   npx wrangler secret put <NAME>
+# ──────────────────────────────────────────────────────────────────────
+
+# Password for the /admin page. Use a long, random passphrase.
+ADMIN_PASSWORD=change-me-to-a-long-random-passphrase
+
+# Signs session cookies. MUST be long and random. Generate one with:
+#   openssl rand -base64 48
+SESSION_SECRET=change-me-generate-with-openssl-rand-base64-48
+
+# API key from https://resend.com/api-keys (starts with "re_").
+RESEND_API_KEY=re_your_key_here
+
+# Cloudflare Turnstile *secret* key (pairs with the site key in
+# wrangler.jsonc). For local dev you can use Cloudflare's test keys:
+#   site key  1x00000000000000000000AA  (always passes)
+#   secret    1x0000000000000000000000000000000AA
+TURNSTILE_SECRET_KEY=1x0000000000000000000000000000000AA

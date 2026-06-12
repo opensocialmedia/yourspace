@@ -1,0 +1,66 @@
+/**
+ * Cloudflare Workers configuration.
+ *
+ * ┌─────────────────────────────────────────────────────────────────┐
+ * │  👋 CLONING THIS REPO? You need to edit this file.              │
+ * │  Search for "REPLACE_ME" — every value you must change is       │
+ * │  marked with it. Full walkthrough in README.md → "Deploy".      │
+ * └─────────────────────────────────────────────────────────────────┘
+ */
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+
+  // REPLACE_ME: the name of your Worker (lowercase, dashes only).
+  // This becomes your default URL: https://<name>.<your-subdomain>.workers.dev
+  "name": "yourspace",
+
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-05-01",
+  "compatibility_flags": ["nodejs_compat"],
+
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+
+  "d1_databases": [
+    {
+      "binding": "DB",
+      // REPLACE_ME: run `npx wrangler d1 create yourspace-db` and paste
+      // the database_id it prints below. Keep the binding name "DB".
+      "database_name": "yourspace-db",
+      "database_id": "REPLACE_ME_WITH_YOUR_D1_DATABASE_ID",
+      "migrations_dir": "migrations"
+    }
+  ],
+
+  "r2_buckets": [
+    {
+      "binding": "MEDIA",
+      // REPLACE_ME (optional): rename if you want a different bucket name,
+      // then create it with `npx wrangler r2 bucket create <name>`.
+      "bucket_name": "yourspace-media"
+    }
+  ],
+
+  // Public (non-secret) configuration. Safe to commit.
+  // Secrets (ADMIN_PASSWORD, SESSION_SECRET, RESEND_API_KEY,
+  // TURNSTILE_SECRET_KEY) are NOT set here — see README → "Secrets".
+  "vars": {
+    // REPLACE_ME: the full URL your site will live at (no trailing slash).
+    // Used to build confirmation-email links and share/OG URLs.
+    "NEXT_PUBLIC_SITE_URL": "https://yourspace.example.com",
+
+    // REPLACE_ME: your Cloudflare Turnstile *site key* (the public one).
+    // Create a widget at https://dash.cloudflare.com → Turnstile.
+    "NEXT_PUBLIC_TURNSTILE_SITE_KEY": "REPLACE_ME_TURNSTILE_SITE_KEY",
+
+    // REPLACE_ME: the From address for confirmation emails. The domain
+    // must be verified in your Resend account (https://resend.com/domains).
+    "RESEND_FROM_EMAIL": "Venya Sneekers <hello@yourspace.example.com>"
+  },
+
+  "observability": {
+    "enabled": true
+  }
+}

@@ -1,0 +1,30 @@
+@import "tailwindcss";
+
+/* X-style permanent dark theme. Tweak these four variables to re-skin
+   the whole site. */
+:root {
+  --background: #000000;
+  --surface: #16181c;
+  --border: #2f3336;
+  --foreground: #e7e9ea;
+  --muted: #71767b;
+  --accent: #1d9bf0;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-border-soft: var(--border);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, sans-serif;
+}
