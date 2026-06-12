@@ -26,6 +26,88 @@ Everything you must personalize is marked **`REPLACE_ME`** in
 [wrangler.jsonc](wrangler.jsonc) — that's the only file you have to edit.
 Your name, bio, photos, and links are set later in the admin UI, not in code.
 
+### Option A — Let an AI agent configure it for you
+
+Open Claude, ChatGPT, or any coding agent in the root of this repo and paste
+the prompt below. It will ask you for your credentials, make the edits, and
+print the exact commands to finish the deploy.
+
+<details>
+<summary><strong>Copy this prompt →</strong></summary>
+
+```
+You are helping me configure and deploy a pre-built personal blog called
+yourspace. The repo is already fully built — your only job is to collect my
+configuration values and fill them in. Do not generate, rewrite, or suggest
+any code changes beyond the specific substitutions listed below.
+
+───────────────────────────────────────────────────
+STEP 1 — Ask me for all of the following in a single message.
+         Wait for my reply before doing anything.
+───────────────────────────────────────────────────
+
+Cloudflare:
+  A. Worker name — what to call your Cloudflare Worker (lowercase, dashes
+     only, e.g. "my-blog"). Becomes: https://<name>.<subdomain>.workers.dev
+  B. D1 database ID — run this in your terminal and paste the database_id
+     it prints:
+       npx wrangler d1 create yourspace-db
+  C. Site URL — the full public URL of your blog (e.g. https://myblog.com,
+     or the workers.dev URL from A). No trailing slash.
+  D. Turnstile site key (public) — from Cloudflare dashboard → Turnstile
+     → Add site. Paste the "Site Key".
+  E. Turnstile secret key — paste the "Secret Key" from the same widget.
+
+Resend:
+  F. From address — the address confirmation emails come from.
+     Format: Your Name <you@yourdomain.com>
+     (the domain must be verified at resend.com/domains)
+  G. Resend API key — from resend.com/api-keys
+
+Admin:
+  H. Admin password — what you will type to log into /admin. Make it long.
+
+───────────────────────────────────────────────────
+STEP 2 — After I reply, make exactly these changes to wrangler.jsonc.
+         Touch no other file.
+───────────────────────────────────────────────────
+
+  • "name" field          → my answer to A
+  • database_id           → my answer to B
+  • NEXT_PUBLIC_SITE_URL  → my answer to C
+  • NEXT_PUBLIC_TURNSTILE_SITE_KEY → my answer to D
+  • RESEND_FROM_EMAIL     → my answer to F
+
+───────────────────────────────────────────────────
+STEP 3 — Print the following terminal commands for me to run.
+         Fill in my values where shown. I will run these myself.
+───────────────────────────────────────────────────
+
+  npx wrangler r2 bucket create yourspace-media
+
+  echo "<answer-H>" | npx wrangler secret put ADMIN_PASSWORD
+  echo "<answer-G>" | npx wrangler secret put RESEND_API_KEY
+  echo "<answer-E>" | npx wrangler secret put TURNSTILE_SECRET_KEY
+  npx wrangler secret put SESSION_SECRET
+  # When SESSION_SECRET prompts you, paste the output of:
+  #   openssl rand -base64 48
+
+  npm run db:migrate:remote
+  npm run deploy
+
+───────────────────────────────────────────────────
+STEP 4 — Print this final note:
+───────────────────────────────────────────────────
+
+  Done. Open https://<site-url>/admin, log in with your admin password,
+  and go to Profile to upload your photo, set your name, bio, and links.
+  Then write your first post. That's it.
+```
+
+</details>
+
+### Option B — Edit wrangler.jsonc yourself
+
 ### 0. Prerequisites
 
 - A [Cloudflare account](https://dash.cloudflare.com/sign-up) (free)
