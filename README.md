@@ -1,204 +1,158 @@
 # yourspace
 
-Your own subscriber-gated personal feed — looks like a social media
-profile, works like a blog, runs **entirely on Cloudflare's free tier**.
+Your own subscriber-gated personal feed: a social-style profile with the control
+of a personal blog. Publish text, photos, videos, and links; manage followers,
+comments, and your profile from `/admin`.
 
-Visitors see your profile, bio, links, and follower count. The posts stay
-locked until they follow with their email (double opt-in, human-verified).
-Once confirmed they can view everything, like/dislike, comment under a
-fun auto-generated username, and share posts with rich link previews.
-You manage everything — posts, comments, subscribers, profile — from a
-password-protected `/admin` page.
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/opensocialmedia/yourspace)
 
-| Layer | Service | Free tier |
-|---|---|---|
-| Hosting + API | Cloudflare Workers (OpenNext) | 100K requests/day |
-| Database | Cloudflare D1 (SQLite) | 5 GB |
-| Media storage | Cloudflare R2 | 10 GB, zero egress fees |
-| Bot protection | Cloudflare Turnstile | free |
-| Email | Resend | 3,000 emails/month |
+## Fastest deployment: use the button
 
----
+1. Click **Deploy to Cloudflare** above and sign in to Cloudflare and GitHub.
+2. Choose your repository, Worker, D1 database, and R2 bucket names.
+   Cloudflare creates a copy of this repo and provisions the database and bucket.
+   Enable R2 on your Cloudflare account if prompted. Cloudflare may require a
+   payment method to activate R2; review its terms and pricing before continuing.
+3. Set the two required Worker secrets:
+   - `ADMIN_PASSWORD`: a long, unique password for `/admin`.
+   - `SESSION_SECRET`: a random signing key. Generate it with
+     `openssl rand -base64 48` or your password manager.
+4. Use **`npm run deploy`** as the deploy command. It builds the Worker, applies
+   the D1 migrations, and publishes. The build command can be left empty because
+   the deploy command includes the production build.
+5. Open the resulting `workers.dev` URL, then `/admin`. Set your profile and
+   write your first post.
 
-## Deploy your own
+No account IDs, database IDs, email provider, custom domain, or code edits are
+needed for this first deployment. The site uses the current request's host by
+default. Posts remain gated and the signup form says subscriptions are coming
+soon until you connect email and bot protection below.
 
-Everything you must personalize is marked **`REPLACE_ME`** in
-[wrangler.jsonc](wrangler.jsonc) — that's the only file you have to edit.
-Your name, bio, photos, and links are set later in the admin UI, not in code.
+The button uses Cloudflare Workers Builds. See [Cloudflare's deploy-button
+documentation](https://developers.cloudflare.com/workers/platform/deploy-buttons/)
+for supported resources and setup behavior.
 
-### Option A — Let an AI agent configure it for you
+## Deploy from a local clone
 
-Open Claude, ChatGPT, or any coding agent in the root of this repo and paste
-the prompt below. It will ask you for your credentials, make the edits, and
-print the exact commands to finish the deploy.
-
-<details>
-<summary><strong>Copy this prompt →</strong></summary>
-
-```
-You are helping me configure and deploy a pre-built personal blog called
-yourspace. The repo is already fully built — your only job is to collect my
-configuration values and fill them in. Do not generate, rewrite, or suggest
-any code changes beyond the specific substitutions listed below.
-
-───────────────────────────────────────────────────
-STEP 1 — Ask me for all of the following in a single message.
-         Wait for my reply before doing anything.
-───────────────────────────────────────────────────
-
-Cloudflare:
-  A. Worker name — what to call your Cloudflare Worker (lowercase, dashes
-     only, e.g. "my-blog"). Becomes: https://<name>.<subdomain>.workers.dev
-  B. D1 database ID — run this in your terminal and paste the database_id
-     it prints:
-       npx wrangler d1 create yourspace-db
-  C. Site URL — the full public URL of your blog (e.g. https://myblog.com,
-     or the workers.dev URL from A). No trailing slash.
-  D. Turnstile site key (public) — from Cloudflare dashboard → Turnstile
-     → Add site. Paste the "Site Key".
-  E. Turnstile secret key — paste the "Secret Key" from the same widget.
-
-Resend:
-  F. From address — the address confirmation emails come from.
-     Format: Your Name <you@yourdomain.com>
-     (the domain must be verified at resend.com/domains)
-  G. Resend API key — from resend.com/api-keys
-
-Admin:
-  H. Admin password — what you will type to log into /admin. Make it long.
-
-───────────────────────────────────────────────────
-STEP 2 — After I reply, make exactly these changes to wrangler.jsonc.
-         Touch no other file.
-───────────────────────────────────────────────────
-
-  • "name" field          → my answer to A
-  • database_id           → my answer to B
-  • NEXT_PUBLIC_SITE_URL  → my answer to C
-  • NEXT_PUBLIC_TURNSTILE_SITE_KEY → my answer to D
-  • RESEND_FROM_EMAIL     → my answer to F
-
-───────────────────────────────────────────────────
-STEP 3 — Print the following terminal commands for me to run.
-         Fill in my values where shown. I will run these myself.
-───────────────────────────────────────────────────
-
-  npx wrangler r2 bucket create yourspace-media
-
-  echo "<answer-H>" | npx wrangler secret put ADMIN_PASSWORD
-  echo "<answer-G>" | npx wrangler secret put RESEND_API_KEY
-  echo "<answer-E>" | npx wrangler secret put TURNSTILE_SECRET_KEY
-  npx wrangler secret put SESSION_SECRET
-  # When SESSION_SECRET prompts you, paste the output of:
-  #   openssl rand -base64 48
-
-  npm run db:migrate:remote
-  npm run deploy
-
-───────────────────────────────────────────────────
-STEP 4 — Print this final note:
-───────────────────────────────────────────────────
-
-  Done. Open https://<site-url>/admin, log in with your admin password,
-  and go to Profile to upload your photo, set your name, bio, and links.
-  Then write your first post. That's it.
-```
-
-</details>
-
-### Option B — Edit wrangler.jsonc yourself
-
-### 0. Prerequisites
-
-- A [Cloudflare account](https://dash.cloudflare.com/sign-up) (free)
-- A [Resend account](https://resend.com) (free) with a verified sending domain
-- Node.js 20+ and npm
-
-### 1. Clone and install
+Requires **Node.js 22.13+**, npm, a Cloudflare account, an enabled R2 service,
+and a `workers.dev` subdomain (shown under Cloudflare → Workers & Pages).
 
 ```bash
-git clone <this-repo> && cd yourspace
-npm install
-npx wrangler login
+git clone https://github.com/opensocialmedia/yourspace.git
+cd yourspace
+npm ci
+npm run setup
 ```
 
-### 2. Create your database and bucket
+The guided setup logs in to Cloudflare, lets you choose an account, asks for a
+Worker name and full site URL, creates or reuses D1/R2 resources, generates
+secure admin/session secrets, applies the schema, and deploys. It asks for only
+the Wrangler OAuth scopes needed for this workflow. Review the consent screen.
+
+Your account configuration goes into **`wrangler.local.json`** and your generated
+admin password into **`.dev.vars`**. Both are gitignored; the public
+`wrangler.jsonc` stays portable. Save the admin password in your password manager.
+Setup can be rerun from the same checkout: it reuses resources and preserves
+existing secrets. Use a separate clone for another account or Worker.
+
+For later code changes:
 
 ```bash
-npx wrangler d1 create yourspace-db
-npx wrangler r2 bucket create yourspace-media
-```
-
-The first command prints a `database_id` — paste it into
-[wrangler.jsonc](wrangler.jsonc) where it says
-`REPLACE_ME_WITH_YOUR_D1_DATABASE_ID`.
-
-### 3. Create a Turnstile widget
-
-Cloudflare dashboard → **Turnstile** → Add site → your domain.
-You get two keys:
-
-- **Site key** (public) → goes in `wrangler.jsonc` →
-  `NEXT_PUBLIC_TURNSTILE_SITE_KEY`
-- **Secret key** → set as a secret in step 5
-
-### 4. Fill in the rest of wrangler.jsonc
-
-Search for `REPLACE_ME` and set:
-
-- `name` — your Worker's name
-- `NEXT_PUBLIC_SITE_URL` — the URL your site will live at
-- `NEXT_PUBLIC_TURNSTILE_SITE_KEY` — from step 3
-- `RESEND_FROM_EMAIL` — e.g. `You <hello@yourdomain.com>` (domain must be
-  verified at [resend.com/domains](https://resend.com/domains))
-
-### 5. Set your secrets
-
-```bash
-npx wrangler secret put ADMIN_PASSWORD       # your /admin password — make it long
-npx wrangler secret put SESSION_SECRET       # run: openssl rand -base64 48
-npx wrangler secret put RESEND_API_KEY       # from resend.com/api-keys
-npx wrangler secret put TURNSTILE_SECRET_KEY # from step 3
-```
-
-### 6. Create the tables and deploy
-
-```bash
-npm run db:migrate:remote
 npm run deploy
 ```
 
-### 7. Make it yours
+The npm commands automatically use `wrangler.local.json` when it exists,
+otherwise `wrangler.jsonc`. When running Wrangler directly in a locally configured
+checkout, include **`--config wrangler.local.json`**. For a clone produced by the
+deploy button, Cloudflare fills in `wrangler.jsonc` instead.
 
-Open `https://your-site/admin`, log in with your `ADMIN_PASSWORD`, and:
+## Enable email subscriptions when ready
 
-1. **Profile** — upload your profile picture and header photo, set your
-   name, bio, and links
-2. **Posts** — write your first post
+The profile and admin area work without Resend or Turnstile. Email subscriptions
+require all four of these real values; unset or starter placeholder values keep
+the form disabled and the signup API returns 503 without collecting an address.
 
-Done. Point your domain at the Worker (Cloudflare dashboard → your
-Worker → Settings → Domains & Routes) and share the link.
+| Setting | Where to set it | Source |
+|---|---|---|
+| `RESEND_FROM_EMAIL` | Wrangler `vars` | E.g. `Your Name <hello@yourdomain.com>`; verify the domain at [Resend](https://resend.com/domains) |
+| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | Wrangler `vars` | Create a widget for your blog hostname in Cloudflare → Turnstile |
+| `RESEND_API_KEY` | Worker secret | [Resend API keys](https://resend.com/api-keys) |
+| `TURNSTILE_SECRET_KEY` | Worker secret | Secret paired with that Turnstile widget |
 
----
+Edit the selected Wrangler config's public `vars`, then set the secrets:
+
+```bash
+# Local-wizard checkout: add --config wrangler.local.json to each command.
+npx wrangler secret put RESEND_API_KEY
+npx wrangler secret put TURNSTILE_SECRET_KEY
+npm run deploy
+```
+
+Never put secret keys in `vars` or commit `.dev.vars`. For local development,
+add the optional secrets to `.dev.vars`. Cloudflare's Turnstile test keys are
+for local testing only; use real widget keys on your public blog. Setup uploads
+only the two required admin/session secrets, so reruns do not replace your
+existing production credentials. For a Worker that is already live, use
+`npm run deploy`; setup refuses to adopt an existing Worker's credentials from
+a fresh checkout.
+
+For a custom domain, attach it in Worker → Settings → Domains & Routes, set
+`NEXT_PUBLIC_SITE_URL` to that HTTPS origin without a trailing slash, add the
+hostname to Turnstile, and redeploy. This gives confirmation emails and shared
+posts a canonical URL. Leave the variable empty to use the request's host.
 
 ## Local development
 
+No Cloudflare login or cloud resources are needed:
+
 ```bash
-cp .dev.vars.example .dev.vars   # then edit it — see comments inside
-npm run db:migrate:local
-npm run dev                      # Next.js dev server with local D1/R2
+npm ci
+npm run setup:local
+npm run dev
 ```
 
-`npm run preview` builds the real Worker and runs it locally in
-workerd — closest thing to production before deploying.
+`setup:local` generates private secrets, applies the local D1 schema, and generates
+Cloudflare types. Read your admin password from `.dev.vars`, then visit
+`http://localhost:3000/admin`. `npm run preview` builds and runs the actual Worker
+locally with its local database and bucket.
 
-| Script | What it does |
+| Command | What it does |
 |---|---|
-| `npm run dev` | Dev server with hot reload + local bindings |
-| `npm run preview` | Production build, served locally via Wrangler |
-| `npm run deploy` | Build + deploy to Cloudflare |
-| `npm run db:migrate:local` / `:remote` | Apply `migrations/` to D1 |
-| `npm run typecheck` / `npm run lint` | The usual |
+| `npm run setup` | Guided Cloudflare provisioning and first deploy |
+| `npm run setup:local` | Generate local secrets, schema, and types |
+| `npm run dev` | Next.js dev server with local D1/R2 |
+| `npm run preview` | Local schema + production Worker build and preview |
+| `npm run deploy` | Production build + remote migrations + deploy |
+| `npm run db:migrate:local` / `:remote` | Apply migrations through the `DB` binding |
+| `npm run cf-typegen` | Regenerate Cloudflare types |
+| `npm test` | Setup, rerun, and failure-path tests |
+| `npm run typecheck` / `npm run lint` | TypeScript and source lint checks |
+
+## Services and costs
+
+This app is designed to fit the free allowances of Workers, D1, R2, Turnstile,
+and Resend for a small personal blog. Free allowances are not a spending cap;
+usage beyond them can be billed on paid plans. The setup script does not select
+or upgrade a plan. Review the current [Cloudflare pricing](https://www.cloudflare.com/plans/developer-platform/)
+and [Resend pricing](https://resend.com/pricing) for your account.
+
+## Troubleshooting
+
+- **Homepage says subscriptions are coming soon:** complete all four email/Turnstile
+  settings and redeploy. There is no bypass of the subscriber gate.
+- **Missing admin/session secret:** use the deploy-button secret fields or rerun
+  `npm run setup:local` / `npm run setup` as appropriate.
+- **R2 is unavailable:** enable R2 in the Cloudflare dashboard, then rerun setup.
+- **Wrong account or Worker:** use a separate clone. The wizard stops rather than
+  retargeting an existing checkout.
+- **Setup stopped midway:** resolve the reported Cloudflare/auth/network error
+  and rerun. Existing named resources are reused; failed migrations stop publishing.
+- **Direct Wrangler commands target the wrong config:** pass
+  `--config wrangler.local.json` when that file exists.
+- **Lint after a build:** generated `.open-next`, `.wrangler`, and Cloudflare type
+  files are excluded; only source code is linted.
+
+---
 
 ## How the email gate works
 

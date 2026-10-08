@@ -82,10 +82,11 @@ export default async function PostPage({
 
   let content: React.ReactNode;
   if (!subscriberId) {
-    const { turnstileSiteKey } = await getConfig();
+    const { turnstileSiteKey, subscriptionsEnabled } = await getConfig();
     content = (
       <FollowGate
         postCount={1}
+        subscriptionsEnabled={subscriptionsEnabled}
         turnstileSiteKey={turnstileSiteKey}
         displayName={profile.displayName}
       />

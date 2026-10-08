@@ -91,13 +91,14 @@ async function GatedFeed({
 }: {
   profile: Awaited<ReturnType<typeof profileService.getProfile>>;
 }) {
-  const [{ turnstileSiteKey }, postCount] = await Promise.all([
+  const [{ turnstileSiteKey, subscriptionsEnabled }, postCount] = await Promise.all([
     getConfig(),
     postService.getPublishedCount(),
   ]);
   return (
     <FollowGate
       postCount={postCount}
+      subscriptionsEnabled={subscriptionsEnabled}
       turnstileSiteKey={turnstileSiteKey}
       displayName={profile.displayName}
     />

@@ -1,9 +1,12 @@
+import { existsSync } from "node:fs";
 import type { NextConfig } from "next";
 import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
 
 // Makes Cloudflare bindings (D1, R2, secrets from .dev.vars) available
 // during `next dev`.
-initOpenNextCloudflareForDev();
+initOpenNextCloudflareForDev({
+  configPath: existsSync("wrangler.local.json") ? "wrangler.local.json" : "wrangler.jsonc",
+});
 
 const nextConfig: NextConfig = {
   // Media is served straight from R2 through our own /api/media route, so

@@ -7,12 +7,15 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
-    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
-    "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
-    "db:migrate:local": "wrangler d1 migrations apply yourspace-db --local",
-    "db:migrate:remote": "wrangler d1 migrations apply yourspace-db --remote",
-    "typecheck": "tsc --noEmit"
+    "preview": "node scripts/cloudflare.mjs preview",
+    "deploy": "node scripts/cloudflare.mjs deploy",
+    "cf-typegen": "node scripts/cloudflare.mjs types",
+    "db:migrate:local": "node scripts/cloudflare.mjs migrate-local",
+    "db:migrate:remote": "node scripts/cloudflare.mjs migrate-remote",
+    "typecheck": "tsc --noEmit",
+    "setup": "node scripts/setup.mjs",
+    "setup:local": "node scripts/setup.mjs --local",
+    "test": "node --test tests/*.test.mjs"
   },
   "dependencies": {
     "@opennextjs/cloudflare": "^1.19.11",
@@ -32,9 +35,29 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.9",
+    "jsonc-parser": "^3.3.1",
     "tailwindcss": "^4",
     "typescript": "^5",
     "wrangler": "^4.100.0"
   },
-  "description": "An open-source, subscriber-gated personal feed — clone it, brand it, deploy it to Cloudflare."
+  "description": "An open-source, subscriber-gated personal feed — clone it, brand it, deploy it to Cloudflare.",
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "cloudflare": {
+    "bindings": {
+      "ADMIN_PASSWORD": {
+        "description": "Choose a long, unique password for /admin."
+      },
+      "SESSION_SECRET": {
+        "description": "Generate a random signing key with `openssl rand -base64 48`."
+      },
+      "DB": {
+        "description": "Stores your profile, posts, subscribers, and comments."
+      },
+      "MEDIA": {
+        "description": "Stores uploaded photos and videos. Keep this bucket private."
+      }
+    }
+  }
 }

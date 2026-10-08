@@ -45,3 +45,6 @@ next-env.d.ts
 .open-next/
 .wrangler/
 cloudflare-env.d.ts
+
+# Personal Cloudflare deployment configuration
+/wrangler.local.json

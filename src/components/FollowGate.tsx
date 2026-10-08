@@ -9,10 +9,12 @@ import { TurnstileWidget } from "@/components/TurnstileWidget";
 
 export function FollowGate({
   postCount,
+  subscriptionsEnabled,
   turnstileSiteKey,
   displayName,
 }: {
   postCount: number;
+  subscriptionsEnabled: boolean;
   turnstileSiteKey: string;
   displayName: string;
 }) {
@@ -52,18 +54,28 @@ export function FollowGate({
           className="w-full max-w-sm mx-4 rounded-2xl border border-border-soft bg-surface p-6 shadow-xl"
           onSubmit={(e) => {
             e.preventDefault();
-            if (turnstileToken) subscribe(email, turnstileToken);
+            if (subscriptionsEnabled && turnstileToken) {
+              subscribe(email, turnstileToken);
+            }
           }}
         >
           <h2 className="text-lg font-bold">
             Follow {displayName} to unlock the feed
           </h2>
           <p className="mt-1 text-[14px] text-muted">
-            {postCount} post{postCount === 1 ? "" : "s"} waiting. Drop your
-            email, confirm it, and everything opens up.
+            {subscriptionsEnabled
+              ? `${postCount} post${postCount === 1 ? "" : "s"} waiting. Drop your email, confirm it, and everything opens up.`
+              : "This feed is getting ready. Check back soon to follow."}
           </p>
 
+          {!subscriptionsEnabled && (
+            <p className="mt-3 text-[14px] text-muted" role="status">
+              Email subscriptions are coming soon.
+            </p>
+          )}
+
           <input
+            disabled={!subscriptionsEnabled}
             type="email"
             required
             autoComplete="email"
@@ -74,15 +86,17 @@ export function FollowGate({
           />
 
           <div className="mt-3">
-            <TurnstileWidget
-              siteKey={turnstileSiteKey}
-              onToken={setTurnstileToken}
-            />
+            {subscriptionsEnabled && (
+              <TurnstileWidget
+                siteKey={turnstileSiteKey}
+                onToken={setTurnstileToken}
+              />
+            )}
           </div>
 
           <button
             type="submit"
-            disabled={state.phase === "submitting" || !turnstileToken}
+            disabled={!subscriptionsEnabled || state.phase === "submitting" || !turnstileToken}
             className="mt-3 w-full rounded-full bg-accent py-2.5 font-bold text-white disabled:opacity-50 hover:opacity-90 transition-opacity"
           >
             {state.phase === "submitting" ? "Sending…" : "Follow"}
@@ -92,10 +106,12 @@ export function FollowGate({
             <p className="mt-3 text-[14px] text-red-400">{state.message}</p>
           )}
 
-          <p className="mt-3 text-[12px] text-muted">
-            Double opt-in: nothing is stored as confirmed until you click the
-            link we email you. No spam, ever.
-          </p>
+          {subscriptionsEnabled && (
+            <p className="mt-3 text-[12px] text-muted">
+              Double opt-in: nothing is stored as confirmed until you click the
+              link we email you. No spam, ever.
+            </p>
+          )}
         </form>
       </div>
     </div>

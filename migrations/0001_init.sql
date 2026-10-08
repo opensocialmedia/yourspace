@@ -84,4 +84,4 @@ CREATE TABLE rate_limits (
 -- Default profile so the site renders before you've touched the admin
 -- page. REPLACE via /admin → Profile (no code edit needed).
 INSERT INTO profile (id, display_name, bio)
-VALUES (1, 'Venya Sneekers', 'Welcome to my corner of the internet. Follow to see what I''m up to.');
+VALUES (1, 'Your Name', 'Welcome to my corner of the internet. Follow to see what I''m up to.');
