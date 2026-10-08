@@ -4,8 +4,8 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync, statSync, existsSync 
 import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 import { parseEnv } from "node:util";
-import { setup, ensureSecrets, validateName, validateUrl, readConfig } from "../scripts/setup.mjs";
-import { cloudflare } from "../scripts/cloudflare.mjs";
+import { setup, ensureSecrets, validateName, validateUrl, readConfig, LOGIN_SCOPES } from "../scripts/setup.mjs";
+import { cloudflare, run } from "../scripts/cloudflare.mjs";
 
 const template = readConfig(new URL("../wrangler.jsonc", import.meta.url));
 function fixture(t) {
@@ -135,4 +135,14 @@ test("public template is portable and contains no personal account or active int
   assert.equal(template.vars.NEXT_PUBLIC_SITE_URL, "");
   assert.equal(template.vars.NEXT_PUBLIC_TURNSTILE_SITE_KEY, "");
   assert.equal(template.vars.RESEND_FROM_EMAIL, "");
+});
+
+test("wizard login scopes are accepted by the installed Wrangler CLI", (t) => {
+  const cwd = fixture(t);
+  const result = run("wrangler", ["login", "--scopes-list"], {
+    cwd, capture: true, env: { WRANGLER_LOG_PATH: resolve(cwd, "logs") },
+  });
+  const supported = [...result.stdout.matchAll(/│\s*([a-z0-9_-]+:(?:read|write|admin|run))\s*│/g)].map((match) => match[1]);
+  assert.ok(supported.length > 0);
+  for (const scope of LOGIN_SCOPES) assert.ok(supported.includes(scope), `Unsupported scope: ${scope}`);
 });

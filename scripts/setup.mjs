@@ -7,6 +7,9 @@ import { parse, printParseErrorCode } from "jsonc-parser";
 import { parseEnv } from "node:util";
 import { cloudflare, root, run } from "./cloudflare.mjs";
 
+// Wrangler automatically adds offline_access to the OAuth request.
+export const LOGIN_SCOPES = ["account:read", "user:read", "workers:write", "workers_scripts:write", "d1:write"];
+
 export function readConfig(path) {
   const errors = [];
   const config = parse(readFileSync(path, "utf8"), errors, { allowTrailingComma: true });
@@ -67,7 +70,7 @@ export async function setup({ cwd = root, local = false, execute = run, ask, log
     if (!/"loggedIn"\s*:\s*false/.test(auth.stdout)) {
       throw new Error("Could not check the Cloudflare login. Check your connection and rerun setup.");
     }
-    execute("wrangler", ["login", "--scopes", "account:read", "user:read", "workers:write", "workers_scripts:write", "d1:write", "offline_access"], { cwd });
+    execute("wrangler", ["login", "--scopes", ...LOGIN_SCOPES], { cwd });
     auth = execute("wrangler", ["whoami", "--json"], { cwd, capture: true });
   }
   const { accounts } = jsonOutput(auth.stdout);
